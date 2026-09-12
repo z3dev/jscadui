@@ -75,7 +75,7 @@ export const getParameterDefinitionsFromSource = (script) => {
         const bracketIdx = code.indexOf('}')
         if (bracketIdx !== -1) code = code.substring(0, bracketIdx)
 
-        const def = parseDef(code, lineNum)
+        const def = parseDef(code)
         def.caption = def.name
         defs.push(prev = def)
 
@@ -95,7 +95,7 @@ export const getParameterDefinitionsFromSource = (script) => {
 }
 
 export const parseOne = (comment, code, line1, line2) => {
-  let def = parseDef(code, line2)
+  let def = parseDef(code)
   const { caption, options } = parseComment(comment, line1, def.name)
   def.caption = caption || def.name
   if (options) {
@@ -145,34 +145,39 @@ export const parseComment = (comment, lineNum, paramName) => {
   return ret
 }
 
-export const parseDef = (code, line) => {
+// parse a definition from the given JS code
+export const parseDef = (code) => {
   if (code[code.length - 1] === ',') code = code.substring(0, code.length - 1).trim()
+
   let idx = code.indexOf('=')
 
   if (idx === -1) idx = code.indexOf(':')
 
   if (idx === -1) {
-    return { name: code, type: 'text' }
+    // return a default definition
+    return { name: code.trim(), type: 'text' }
   } else {
+    // get the name from the JS code
+    const def = { name: code.substring(0, idx).trim(), type: 'text' }
+
+    // get the initial value from the JS code
     const initial = code.substring(idx + 1).trim()
 
-    const ret = { type: 'text', name: code.substring(0, idx).trim() }
-
     if (initial === 'true' || initial === 'false') {
-      ret.type = 'checkbox'
-      ret.checked = initial === 'true'
-      ret.initial = initial
+      def.type = 'checkbox'
+      def.checked = initial === 'true'
+      def.initial = initial === 'true'
     } else if (/^[0-9]+$/.test(initial)) {
-      ret.type = 'int'
-      ret.initial = parseFloat(initial)
+      def.type = 'int'
+      def.initial = parseFloat(initial)
     } else if (/^[0-9]+\.[0-9]+$/.test(initial)) {
-      ret.type = 'number'
-      ret.initial = parseFloat(initial)
+      def.type = 'number'
+      def.initial = parseFloat(initial)
     } else {
-      ret.initial = initial
+      def.initial = initial.replace(/^['"]|['"]$/g, '')
     }
 
-    return ret
+    return def
   }
 }
 
