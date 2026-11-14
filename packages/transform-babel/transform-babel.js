@@ -6,8 +6,7 @@ availablePlugins['preventInfiniteLoops'] = preventInfiniteLoops
 
 export const transformDefaults = {
   retainLines: true,
-  // plugins: ['syntax-object-rest-spread', 'preventInfiniteLoops'],
-  plugins: ['syntax-object-rest-spread'],
+  plugins: ['transform-object-rest-spread', "transform-export-namespace-from"],
   presets: ["typescript"],
 }
 
